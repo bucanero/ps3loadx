@@ -1,10 +1,10 @@
 #include "pad.h"
-#include <sysutil/events.h>
+#include <sysutil/sysutil.h>
 
 unsigned temp_pad = 0, new_pad = 0, old_pad = 0;
 
-PadInfo padinfo;
-PadData paddata;
+padInfo padinfo;
+padData paddata;
 int pad_alive=0;
 
 
@@ -17,13 +17,13 @@ unsigned ps3pad_read()
 {
     int n;
 
-    PadActParam actparam;
+    padActParam actparam;
 
     unsigned butt = 0;
 
     pad_alive = 0;
 
-    sysCheckCallback();
+    sysUtilCheckCallback();
 
     ioPadGetInfo(&padinfo);
 

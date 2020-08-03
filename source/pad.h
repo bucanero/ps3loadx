@@ -21,8 +21,8 @@
 #define BUTTON_R2         2
 #define BUTTON_L2         1
 
-extern PadInfo padinfo;
-extern PadData paddata;
+extern padInfo padinfo;
+extern padData paddata;
 
 extern unsigned new_pad; // new pad buttons pressed (only can see one time, when it change from 0 to 1)
 extern unsigned old_pad; // old pad buttons pressed (only can change when you release the button)

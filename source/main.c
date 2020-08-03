@@ -5,15 +5,15 @@
 
 */
 
-#include <lv2/process.h>
-#include <psl1ght/lv2/filesystem.h>
+#include <sys/process.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 
 
-#include <psl1ght/lv2/thread.h>
+#include <sys/thread.h>
 #include <sysmodule/sysmodule.h>
 
-#include <sysutil/events.h>
+#include <sysutil/sysutil.h>
 
 #include <stdio.h>
 #include <malloc.h>
@@ -46,20 +46,20 @@ void release_all();
 
 #define DT_DIR 1
 
-#define VERSION "v1.1"
+#define VERSION "v1.2"
 #define PORT 4299
 #define MAX_ARG_COUNT 0x100
 
 #define ERROR(a, msg) { \
 	if (a < 0) { \
-		sprintf(msg_error, "PS3LoadX: " msg ); \
+		snprintf(msg_error, sizeof(msg_error), "PS3LoadX: " msg ); \
         usleep(250); \
         if(my_socket >= 0) { close(my_socket);my_socket = -1;} \
 	} \
 }
 #define ERROR2(a, msg) { \
 	if (a < 0) { \
-		sprintf(msg_error, "PS3LoadX: %s", msg ); \
+		snprintf(msg_error, sizeof(msg_error), "PS3LoadX: %s", msg ); \
         sleep(2); \
         msg_error[0] = 0; \
 		usleep(60); \
@@ -77,12 +77,12 @@ void DeleteDirectory(const char* path)
 {
 	int dfd;
 	u64 read;
-	Lv2FsDirent dir;
-	if (lv2FsOpenDir(path, &dfd))
+	sysFSDirent dir;
+	if (sysLv2FsOpenDir(path, &dfd))
 		return;
     
-    read = sizeof(Lv2FsDirent);
-	while (!lv2FsReadDir(dfd, &dir, &read)) {
+    read = sizeof(sysFSDirent);
+	while (!sysLv2FsReadDir(dfd, &dir, &read)) {
 		char newpath[0x440];
 		if (!read)
 			break;
@@ -100,7 +100,7 @@ void DeleteDirectory(const char* path)
 			remove(newpath);
 		}
 	}
-	lv2FsCloseDir(dfd);
+	sysLv2FsCloseDir(dfd);
 }
 
 
@@ -108,14 +108,14 @@ void CopyDirectory(const char* dst_path, const char* src_path)
 {
 	int dfd;
 	u64 read;
-	Lv2FsDirent dir;
-	if (lv2FsOpenDir(src_path, &dfd))
+	sysFSDirent dir;
+	if (sysLv2FsOpenDir(src_path, &dfd))
 		return;
 
     mkdir(dst_path, 0777);
     
-    read = sizeof(Lv2FsDirent);
-	while (!lv2FsReadDir(dfd, &dir, &read)) {
+    read = sizeof(sysFSDirent);
+	while (!sysLv2FsReadDir(dfd, &dir, &read)) {
 		char newsrc_path[0x440];
         char newdst_path[0x440];
 		if (!read)
@@ -158,7 +158,7 @@ void CopyDirectory(const char* dst_path, const char* src_path)
             }
             
             if(f == 0) {
-                sprintf(msg_error, "Error copying file: %s", dir.d_name);
+                snprintf(msg_error, sizeof(msg_error), "Error copying file: %s", dir.d_name);
                 sleep(2);
                 msg_error[0] = 0;
                 usleep(60);
@@ -166,7 +166,7 @@ void CopyDirectory(const char* dst_path, const char* src_path)
 
 		}
 	}
-	lv2FsCloseDir(dfd);
+	sysLv2FsCloseDir(dfd);
 }
 
 
@@ -202,7 +202,7 @@ char filename2[1024];
 
 u32 color_two = 0xffffffff;
 
-static void control_thread(u64 arg)
+static void control_thread(void* arg)
 {
 	
 	int i;
@@ -250,7 +250,7 @@ static void control_thread(u64 arg)
                         flag_exit = 2;
 
                         if(directories[curdir].device)
-                            sprintf(bootpath, "/dev_usb/homebrew/%s/EBOOT.BIN", &directories[curdir].name[0]);
+                            sprintf(bootpath, "/dev_usb000/homebrew/%s/EBOOT.BIN", &directories[curdir].name[0]);
                         else
                             sprintf(bootpath, "%s/%s/EBOOT.BIN", ps3load_path, &directories[curdir].name[0]);
                     
@@ -286,7 +286,7 @@ static void control_thread(u64 arg)
                     if(yesno) {
                        
                         if(directories[curdir].device)
-                            sprintf(filename, "/dev_usb/homebrew/%s", &directories[curdir].name[0]);
+                            sprintf(filename, "/dev_usb000/homebrew/%s", &directories[curdir].name[0]);
                         else
                             sprintf(filename, "%s/%s", ps3load_path, &directories[curdir].name[0]);
 
@@ -306,11 +306,11 @@ static void control_thread(u64 arg)
                     if(yesno) {
                        
                         if(directories[curdir].device) {
-                            sprintf(filename, "/dev_usb/homebrew/%s", &directories[curdir].name[0]);
+                            sprintf(filename, "/dev_usb000/homebrew/%s", &directories[curdir].name[0]);
                             sprintf(filename2, "%s/%s", ps3load_path, &directories[curdir].name[0]);
                         } else {
                             sprintf(filename, "%s/%s", ps3load_path, &directories[curdir].name[0]);
-                            sprintf(filename2, "/dev_usb/homebrew/%s", &directories[curdir].name[0]);
+                            sprintf(filename2, "/dev_usb000/homebrew/%s", &directories[curdir].name[0]);
                         }
 
                         yesno =0;
@@ -430,7 +430,7 @@ static void control_thread(u64 arg)
 
         // Enable alpha blending.
         tiny3d_BlendFunc(1, TINY3D_BLEND_FUNC_SRC_RGB_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_ALPHA_SRC_ALPHA,
-            NV30_3D_BLEND_FUNC_DST_RGB_ONE_MINUS_SRC_ALPHA | NV30_3D_BLEND_FUNC_DST_ALPHA_ZERO,
+            TINY3D_BLEND_FUNC_DST_RGB_ONE_MINUS_SRC_ALPHA | TINY3D_BLEND_FUNC_DST_ALPHA_ZERO,
             TINY3D_BLEND_RGB_FUNC_ADD | TINY3D_BLEND_ALPHA_FUNC_ADD);
 
         
@@ -473,7 +473,7 @@ static void control_thread(u64 arg)
 
             x=(848-jpg1.width*2)/2; y=(512-jpg1.height*2)/2;
 
-            tiny3d_SetTexture(0, jpg1_offset, jpg1.width, jpg1.height, jpg1.wpitch, TINY3D_TEX_FORMAT_A8R8G8B8, 1);
+            tiny3d_SetTexture(0, jpg1_offset, jpg1.width, jpg1.height, jpg1.pitch, TINY3D_TEX_FORMAT_A8R8G8B8, 1);
 
             tiny3d_SetPolygon(TINY3D_QUADS);
             
@@ -520,7 +520,7 @@ static void control_thread(u64 arg)
 
 
                 tiny3d_SetTexture(0, Png_offset[directories[index].text], Png_datas[directories[index].text].width, 
-                    Png_datas[directories[index].text].height, Png_datas[directories[index].text].wpitch, TINY3D_TEX_FORMAT_A8R8G8B8, 1);
+                    Png_datas[directories[index].text].height, Png_datas[directories[index].text].pitch, TINY3D_TEX_FORMAT_A8R8G8B8, 1);
 
                 
                
@@ -665,25 +665,25 @@ static void control_thread(u64 arg)
 		
         }
 
-		sys_ppu_thread_yield();
+		sysThreadYield();
 		
 		tiny3d_Flip();
-		sysCheckCallback();
+		sysUtilCheckCallback();
 		
 		
 	}
 	//you must call this, kthx
-	sys_ppu_thread_exit(0);
+	sysThreadExit(0);
 }
 
-static void file_thread(u64 arg)
+static void file_thread(void* arg)
 {
     int i;
     
     int counter2=0;
     int n;
 
-    Lv2FsFile dir;
+    s32 dir;
     FILE *fp;
 
     while(running ){
@@ -691,13 +691,13 @@ static void file_thread(u64 arg)
         if((counter2 & 31)==0) {
             int refresh = 0;
 
-            if(lv2FsOpenDir("/dev_usb/homebrew/", &dir) == 0) {
-                if(!pendrive_test) {hdd_test = 0; device_mode = 1; refresh = 1;} else lv2FsCloseDir(dir);
+            if(sysLv2FsOpenDir("/dev_usb000/homebrew/", &dir) == 0) {
+                if(!pendrive_test) {hdd_test = 0; device_mode = 1; refresh = 1;} else sysLv2FsCloseDir(dir);
             } else {
 
-                if(device_mode == 0 && lv2FsOpenDir("/dev_usb/", &dir) == 0) {
-                    mkdir("/dev_usb/homebrew", 0777);
-                   lv2FsCloseDir(dir);
+                if(device_mode == 0 && sysLv2FsOpenDir("/dev_usb000/", &dir) == 0) {
+                    mkdir("/dev_usb000/homebrew", 0777);
+                   sysLv2FsCloseDir(dir);
                    hdd_test = 0; pendrive_test = 0;
                    ndirectories = 0;
                    curdir = 0;
@@ -707,8 +707,8 @@ static void file_thread(u64 arg)
 
                 device_mode = 0;
                 pendrive_test = 0;
-                if(lv2FsOpenDir(ps3load_path, &dir) == 0) {
-                    if(!hdd_test) {device_mode = 0; refresh = 1;} else lv2FsCloseDir(dir);
+                if(sysLv2FsOpenDir(ps3load_path, &dir) == 0) {
+                    if(!hdd_test) {device_mode = 0; refresh = 1;} else sysLv2FsCloseDir(dir);
                 } else {
                     ndirectories = 0;
                     curdir = 0;
@@ -721,18 +721,18 @@ static void file_thread(u64 arg)
                 n = 0;
 
                 while(1) {
-                    u64 read = sizeof(Lv2FsDirent);
-                    Lv2FsDirent entry;
+                    u64 read = sizeof(sysFSDirent);
+                    sysFSDirent entry;
                     directories[n].text = -1;
 
-                    if(lv2FsReadDir(dir, &entry, &read)<0 || read <= 0) break;
+                    if(sysLv2FsReadDir(dir, &entry, &read)<0 || read <= 0) break;
 
                     if((entry.d_type & 1) && entry.d_name[0] != '.') {
                         strcpy(&directories[n].name[0], entry.d_name);
                         directories[n].title[0] = 0;
 
                         if(device_mode)
-                            sprintf(filename, "/dev_usb/homebrew/%s/title.txt", &directories[n].name[0]);
+                            sprintf(filename, "/dev_usb000/homebrew/%s/title.txt", &directories[n].name[0]);
                         else
                             sprintf(filename, "%s/%s/title.txt", ps3load_path, &directories[n].name[0]);
                        
@@ -745,7 +745,9 @@ static void file_thread(u64 arg)
                         i=0; 
                         while(directories[n].title[i] && i < 40) {
                             if(directories[n].title[i] == 13 || directories[n].title[i] == 10)  break;
-                            if(directories[n].title[i] < 32) directories[n].title[i] = 32; i++;}
+                            if(directories[n].title[i] < 32) directories[n].title[i] = 32;
+                            i++;
+                        }
                         directories[n].device = device_mode;
                         n++;
                     }
@@ -758,7 +760,7 @@ static void file_thread(u64 arg)
             }
             if(device_mode) pendrive_test = 1; else hdd_test = 1;
 
-            lv2FsCloseDir(dir);
+            sysLv2FsCloseDir(dir);
         } 
 
 
@@ -771,14 +773,14 @@ static void file_thread(u64 arg)
                 if(ndirectories && directories[index].text<0) {
                     
                     if(directories[index].device)
-                        sprintf(filename, "/dev_usb/homebrew/%s/ICON0.PNG", &directories[index].name[0]);
+                        sprintf(filename, "/dev_usb000/homebrew/%s/ICON0.PNG", &directories[index].name[0]);
                     else
                         sprintf(filename, "%s/%s/ICON0.PNG", ps3load_path, &directories[index].name[0]);
 
                     if(LoadTexturePNG(filename, i) == 0) directories[index].text = i;
                     else {
                         directories[index].text = 4;
-                        memcpy(&Png_datas[4], &jpg1, sizeof(JpgDatas));
+                        memcpy(&Png_datas[4], &jpg1, sizeof(jpgData));
                         Png_offset[4] = jpg1_offset;
                     }
                 }
@@ -792,7 +794,7 @@ static void file_thread(u64 arg)
 
 	}
 	//you must call this, kthx
-	sys_ppu_thread_exit(0);
+	sysThreadExit(0);
 }
 
 
@@ -800,7 +802,7 @@ static void file_thread(u64 arg)
 static void sys_callback(uint64_t status, uint64_t param, void* userdata) {
 
      switch (status) {
-		case EVENT_REQUEST_EXITAPP:
+		case SYSUTIL_EXIT_GAME:
 			if(my_socket!=-1) {
 				flag_exit=1;
 				close(my_socket);
@@ -822,23 +824,23 @@ void release_all() {
 
 	u64 retval;
 
-	sysUnregisterCallback(EVENT_SLOT0);
+	sysUtilUnregisterCallback(SYSUTIL_EVENT_SLOT0);
 	running= 0;
-	sys_ppu_thread_join(thread1_id, &retval);
-    sys_ppu_thread_join(thread2_id, &retval);
+	sysThreadJoin(thread1_id, &retval);
+    sysThreadJoin(thread2_id, &retval);
 
-	SysUnloadModule(SYSMODULE_JPGDEC);
-    SysUnloadModule(SYSMODULE_PNGDEC);
-    SysUnloadModule(SYSMODULE_FS);
+	sysModuleUnload(SYSMODULE_JPGDEC);
+    sysModuleUnload(SYSMODULE_PNGDEC);
+    sysModuleUnload(SYSMODULE_FS);
 
 }
 
 
 int main(int argc, const char* argv[], const char* envp[])
 {
-	SysLoadModule(SYSMODULE_FS);
-    SysLoadModule(SYSMODULE_PNGDEC);
-	SysLoadModule(SYSMODULE_JPGDEC);
+	sysModuleLoad(SYSMODULE_FS);
+    sysModuleLoad(SYSMODULE_PNGDEC);
+	sysModuleLoad(SYSMODULE_JPGDEC);
 
     if(argc>0 && argv) {
     
@@ -851,7 +853,7 @@ int main(int argc, const char* argv[], const char* envp[])
 
             if(ps3load_path[n] == '/') {
                 sprintf(&ps3load_path[n], "%s", "/RELOAD.SELF");
-                lv2FsChmod(ps3load_path, 0170777ULL);
+                sysLv2FsChmod(ps3load_path, 0170777ULL);
 
                 sprintf(&ps3load_path[n], "%s", "/homebrew");
                 v_release = 1;
@@ -879,11 +881,11 @@ int main(int argc, const char* argv[], const char* envp[])
 	ioPadInit(7);
 	
 
-    sys_ppu_thread_create( &thread1_id, control_thread, 0ULL, 999, 256*1024, THREAD_JOINABLE, "Control Thread ps3load");
-    sys_ppu_thread_create( &thread2_id, file_thread, 0ULL, 1000, 256*1024, THREAD_JOINABLE, "File Thread ps3load");
+    sysThreadCreate( &thread1_id, control_thread, 0ULL, 999, 256*1024, THREAD_JOINABLE, "Control Thread ps3load");
+    sysThreadCreate( &thread2_id, file_thread, 0ULL, 1000, 256*1024, THREAD_JOINABLE, "File Thread ps3load");
 
 	// register exit callback
-	sysRegisterCallback(EVENT_SLOT0, sys_callback, NULL);
+	sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, sys_callback, NULL);
 
     sprintf(msg_two, "Creating socket...");
 
@@ -994,17 +996,17 @@ reloop:
 
 		sprintf(msg_two, "Launching...");
 
-		int fd = open(SELF_PATH, O_CREAT | O_TRUNC | O_WRONLY);
-		ERROR2(fd, "Error opening temporary file.");
+		FILE *fd = fopen(SELF_PATH, "wb");
+		if (!fd) ERROR2(-1, "Error opening temporary file.");
 
 		pos = 0;
 		while (pos < uncompressed) {
 			count = MIN(0x1000, uncompressed - pos);
-			write(fd, data + pos, count);
+			fwrite(data + pos, count, 1, fd);
 			pos += count;
 		}
 
-		close(fd);
+		fclose(fd);
 
         free(data);
 
@@ -1048,7 +1050,7 @@ reloop:
                            ERROR2(-1, "ZIP install cancelled");
                        }
 
-                       if(hdd_install == 2) mkdir("/dev_usb/homebrew", 0777);
+                       if(hdd_install == 2) mkdir("/dev_usb000/homebrew", 0777);
 
 
                     } else {
@@ -1065,7 +1067,7 @@ reloop:
                 if(hdd_install==1)
                     strcpy(path, ps3load_path);
                 else
-                    strcpy(path, "/dev_usb/homebrew");
+                    strcpy(path, "/dev_usb000/homebrew");
 
                 if (filename[0] != '/')
 					strcat(path, "/");
@@ -1089,11 +1091,11 @@ reloop:
 						continue;
 					}
 
-					int tfd = open(path, O_CREAT | O_TRUNC | O_WRONLY);
-                    if(tfd < 0) {
+					FILE* tfd = fopen(path, "wb");
+                    if(!tfd) {
 					    zip_fclose(zfd);
                         zip_close(archive);
-                        ERROR2(tfd, "Error opening temporary file.");
+                        ERROR2(-1, "Error opening temporary file.");
                     }
 
 					pos = 0;
@@ -1105,20 +1107,20 @@ reloop:
                             free(buffer);
 
                             zip_fclose(zfd);
-                            close(tfd);
+                            fclose(tfd);
                             zip_close(archive);
 							
                             ERROR2(-1, "Error reading from zip.");
                             
                         }
 
-						write(tfd, buffer, count);
+						fwrite(buffer, count, 1, tfd);
 						pos += count;
 					}
 					free(buffer);
 
 					zip_fclose(zfd);
-					close(tfd);
+					fclose(tfd);
 				} else
 					mkdir(path, 0777);
 			}

@@ -5,13 +5,13 @@
 #include <string.h>
 #include <math.h>
 
-JpgDatas jpg1;
+jpgData jpg1;
 u32 jpg1_offset;
 
 u32 * texture_pointer; // use to asign texture space without changes texture_mem
 u32 * texture_pointer2; // use to asign texture for PNG
 
-PngDatas Png_datas[5];
+pngData Png_datas[5];
 u32 Png_offset[5];
 
 void LoadTexture()
@@ -29,22 +29,19 @@ void LoadTexture()
 
     // here you can add more textures using 'texture_pointer'. It is returned aligned to 16 bytes
 
-    jpg1.jpg_in= (void *) psl1ght_jpg_bin;
-	jpg1.jpg_size= sizeof(psl1ght_jpg_bin);
-
-    LoadJPG(&jpg1, NULL);
+    jpgLoadFromBuffer(psl1ght_jpg_bin, psl1ght_jpg_bin_size, &jpg1);
 
     jpg1_offset = 0;
        
     if(jpg1.bmp_out) {
 
-        memcpy(texture_pointer, jpg1.bmp_out, jpg1.wpitch * jpg1.height);
+        memcpy(texture_pointer, jpg1.bmp_out, jpg1.pitch * jpg1.height);
         
         free(jpg1.bmp_out);
 
         jpg1.bmp_out= texture_pointer;
 
-        texture_pointer += (jpg1.wpitch/4 * jpg1.height + 3) & ~3; // aligned to 16 bytes (it is u32) and update the pointer
+        texture_pointer += (jpg1.pitch/4 * jpg1.height + 3) & ~3; // aligned to 16 bytes (it is u32) and update the pointer
 
         jpg1_offset = tiny3d_TextureOffset(jpg1.bmp_out);      // get the offset (RSX use offset instead address)
      }
@@ -57,14 +54,13 @@ int LoadTexturePNG(char * filename, int index)
 
     // here you can add more textures using 'texture_pointer'. It is returned aligned to 16 bytes
    
-	LoadPNG(&Png_datas[index], filename);
-    free(Png_datas[index].png_in);
+	pngLoadFromFile(filename, &Png_datas[index]);
 
     Png_offset[index] = 0;
        
     if(Png_datas[index].bmp_out) {
 
-        memcpy(texture_pointer2, Png_datas[index].bmp_out, Png_datas[index].wpitch * Png_datas[index].height);
+        memcpy(texture_pointer2, Png_datas[index].bmp_out, Png_datas[index].pitch * Png_datas[index].height);
         
         free(Png_datas[index].bmp_out);
 
