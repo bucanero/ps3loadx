@@ -14,7 +14,7 @@ TITLE		:=	PS3loadX
 APPID		:=	PSL145310
 CONTENTID	:=	UP0001-$(APPID)_00-0000000000000000
 SFOXML		:=	package.xml
-ICON0       :=	ICON0.PNG
+ICON0       :=	$(CURDIR)/pkgfiles/ICON0.PNG
 
 include $(PSL1GHT)/ppu_rules
 
@@ -33,6 +33,7 @@ SOURCES		:=	source
 DATA		:=	data
 SHADERS		:=	shaders
 INCLUDES	:=	include
+PKGFILES	:=	$(CURDIR)/pkgfiles
 
 
 #---------------------------------------------------------------------------------
