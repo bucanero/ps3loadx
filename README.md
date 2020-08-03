@@ -1,6 +1,6 @@
 # PS3loadX
 
-PS3loadX is my personal evolution of PSL1GHT PS3load sample, using now the [Tiny3D](https://github.com/wargio/tiny3D/) library. I hope this version helps to you to work easily ;)
+PS3loadX is the evolution of [PSL1GHT](https://github.com/ps3dev/PSL1GHT/) PS3load sample, now using the [Tiny3D](https://github.com/wargio/tiny3D/) library. I hope this version helps you to work easily ;)
 
 ## Features
 - You can load SELF files using the net.
@@ -9,10 +9,12 @@ PS3loadX is my personal evolution of PSL1GHT PS3load sample, using now the [Tiny
 - You can copy applications from USB devices to HDD
 - Also you can delete installed applications.
 
+![PS3loadX](https://user-images.githubusercontent.com/1153055/89194908-65477980-d57e-11ea-8d7f-67e73060b9a5.png)
+
 NOTE:
 -----
 
-You can include this lines in your app to return to the PS3LoadX application
+You can include these lines in your app to return to the PS3LoadX application
 ```c
 #include <sys/process.h>
 .....
@@ -40,14 +42,14 @@ app_folder
 
 `ICON0.PNG`: optional app. image
 
-`title.txt`: it countain one text line with the name app name. It it don't exist PS3LoadX uses `app_folder` as title. i.e: "My application - test 1"
+`title.txt`: it countain one text line with the name app name. If it doesn't exists PS3LoadX uses `app_folder` as title. i.e: "My application - test 1"
 
 Sending SELF files from the net
 -------------------------------
 
-You need send it from the PC using psloadx.exe (see PSL1GHT tools)
+You need to send the `.self` from the PC using `psloadx.exe` (see PSL1GHT tools)
 
-For example from one .bat file under windows:
+For example from one .bat file under Windows:
 ```
 set PS3LOAD = tcp:192.168.2.12 // -> PS3 IP
 
@@ -88,4 +90,4 @@ Exiting from PS3LoadX
 
 Press <kbd>TRIANGLE</kbd> to exit.
 
-Also you can force exit pressing 'PS' (if the network crashes use it)
+Also you can force exit pressing `PS` (if the network crashes use it)
