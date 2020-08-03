@@ -1,6 +1,6 @@
 # PS3loadX
 
-PS3loadX is my personal evolution of PSL1GHT PS3load sample, using now the Tiny3D library. I hope this version helps to you to work easily ;)
+PS3loadX is my personal evolution of PSL1GHT PS3load sample, using now the [Tiny3D](https://github.com/wargio/tiny3D/) library. I hope this version helps to you to work easily ;)
 
 ## Features
 - You can load SELF files using the net.
@@ -71,17 +71,17 @@ Use <kbd>LEFT</kbd>/<kbd>RIGHT</kbd> in digital pad
 Copying files from USB
 ----------------------
 
-Press <kbd>CIRCLE</kbd> and select 'Yes' using digital pad
+Press <kbd>CIRCLE</kbd> and select `Yes` using digital pad
 
 Deleting Applications
 ---------------------
 
-Press <kbd>SQUARE</kbd> and select 'Yes' using digital pad
+Press <kbd>SQUARE</kbd> and select `Yes` using digital pad
 
 Launch Applications
 -------------------
 
-Press <kbd>CROSS</kbd> and select 'Yes' using digital pad
+Press <kbd>CROSS</kbd> and select `Yes` using digital pad
 
 Exiting from PS3LoadX
 ---------------------
