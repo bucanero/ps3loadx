@@ -1,5 +1,9 @@
 #include "gfx.h"
 
+// font 0: 224 chr from 32 to 255, 16 x 32 pix 2 bit depth
+#include "font.h"
+#include "psl1ght_jpg_bin.h" // jpg in memory
+
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>

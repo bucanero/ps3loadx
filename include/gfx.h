@@ -4,13 +4,8 @@
 #include <tiny3d.h>
 #include <libfont.h>
 
-// font 0: 224 chr from 32 to 255, 16 x 32 pix 2 bit depth
-#include "font.h"
-
-
 #include <jpgdec/jpgdec.h>
 #include <pngdec/pngdec.h>
-#include "psl1ght_jpg_bin.h" // jpg in memory
 
 extern jpgData jpg1;
 extern u32 jpg1_offset;
