@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <net/netctl.h>
 #include <net/net.h>
 
 #include <zlib.h>
@@ -35,7 +36,6 @@
 int v_release = 0;
 
 char msg_error[128];
-//char msg_one  [128];
 char msg_two  [128];
 
 char bootpath[MAXPATHLEN];
@@ -46,7 +46,7 @@ void release_all();
 
 #define DT_DIR 1
 
-#define VERSION "v1.2"
+#define VERSION "v1.2.1"
 #define PORT 4299
 #define MAX_ARG_COUNT 0x100
 
@@ -829,8 +829,9 @@ void release_all() {
 	sysThreadJoin(thread1_id, &retval);
     sysThreadJoin(thread2_id, &retval);
 
-	sysModuleUnload(SYSMODULE_JPGDEC);
+    sysModuleUnload(SYSMODULE_JPGDEC);
     sysModuleUnload(SYSMODULE_PNGDEC);
+    sysModuleUnload(SYSMODULE_NETCTL);
     sysModuleUnload(SYSMODULE_FS);
 
 }
@@ -838,9 +839,10 @@ void release_all() {
 
 int main(int argc, const char* argv[], const char* envp[])
 {
-	sysModuleLoad(SYSMODULE_FS);
+    sysModuleLoad(SYSMODULE_FS);
     sysModuleLoad(SYSMODULE_PNGDEC);
-	sysModuleLoad(SYSMODULE_JPGDEC);
+    sysModuleLoad(SYSMODULE_JPGDEC);
+    sysModuleLoad(SYSMODULE_NETCTL);
 
     if(argc>0 && argv) {
     
@@ -862,7 +864,6 @@ int main(int argc, const char* argv[], const char* envp[])
     }
 
 	msg_error[0] = 0; // clear msg_error
-    //msg_one  [0] = 0;
     msg_two  [0] = 0;
 
     tiny3d_Init(1024*1024);
@@ -873,6 +874,7 @@ int main(int argc, const char* argv[], const char* envp[])
     my_socket = -1;
 
     ERROR(netInitialize(), "Error initializing network");
+    ERROR(netCtlInit(), "Error initializing network");
 
     mkdir(ZIP_PATH, 0777);
 	DeleteDirectory(ZIP_PATH);
@@ -880,6 +882,9 @@ int main(int argc, const char* argv[], const char* envp[])
 
 	ioPadInit(7);
 	
+    union net_ctl_info ip_info;
+    memset(&ip_info, 0, sizeof(ip_info));
+    netCtlGetInfo(NET_CTL_INFO_IP_ADDRESS, &ip_info);
 
     sysThreadCreate( &thread1_id, control_thread, 0ULL, 999, 256*1024, THREAD_JOINABLE, "Control Thread ps3load");
     sysThreadCreate( &thread2_id, file_thread, 0ULL, 1000, 256*1024, THREAD_JOINABLE, "File Thread ps3load");
@@ -923,7 +928,7 @@ reloop:
 
         color_two = 0xffffffff;
 
-		sprintf(msg_two, "Waiting for connection...");
+		snprintf(msg_two, sizeof(msg_two), "%s:%d waiting for connection...", ip_info.ip_address, PORT);
 		
 		int c = accept(my_socket, NULL, NULL);
 

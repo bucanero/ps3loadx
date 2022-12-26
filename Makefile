@@ -39,7 +39,7 @@ PKGFILES	:=	$(CURDIR)/pkgfiles
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS		:=	-lzip -lz -lfont3d -ltiny3d -lgcm_sys -lsysutil -lio -lm -lpngdec -ljpgdec -lnet -lsysmodule
+LIBS		:=	-lzip -lz -lfont3d -ltiny3d -lgcm_sys -lsysutil -lio -lm -lpngdec -ljpgdec -lnet -lsysmodule -lnetctl
 
 
 #---------------------------------------------------------------------------------
