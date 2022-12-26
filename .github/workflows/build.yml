@@ -9,14 +9,11 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 1
 
     - name: Set env vars
       id: slug
       run: |
-        echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
-        echo "pkg_file=ps3loadx.pkg" >> $GITHUB_ENV
+        echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
 
       # using pre-compiled sdk
     - name: Download PSL1GHT Toolchain
@@ -27,13 +24,15 @@ jobs:
 
     - name: Build PS3LoadX App Package
       run: |
+        make
+        cp ps3loadx.self pkgfiles/RELOAD.SELF
         make pkg
 
     - name: Push package artifact
       uses: actions/upload-artifact@v3
       with:
-        name: apollo-ps3-build_${{ steps.slug.outputs.sha8 }}
-        path: ${{ env.pkg_file }}
+        name: ps3loadx-build_${{ env.sha_name }}
+        path: ps3loadx.pkg
         if-no-files-found: error
         # don't keep artifacts for too long
         retention-days: 7
