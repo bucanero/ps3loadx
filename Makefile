@@ -10,7 +10,7 @@ endif
 #---------------------------------------------------------------------------------
 #  TITLE, APPID, CONTENTID, ICON0 SFOXML before ppu_rules.
 #---------------------------------------------------------------------------------
-TITLE		:=	PS3loadX
+TITLE		:=	PS3LoadX
 APPID		:=	PSL145310
 CONTENTID	:=	UP0001-$(APPID)_00-0000000000000000
 SFOXML		:=	package.xml
